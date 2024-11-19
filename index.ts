@@ -92,14 +92,15 @@ const port = process.env.SERVICE_PORT;
 
 app.post('/verify', async (req, res) => {
 
-    const bundleId = req.header('X-Bundle-Id')
-    const environment = req.header('X-Environment')
-    const transactionId = req.header('X-Transaction-Id')
+    const bundleId = req.header('Package-Name')
+    const environment = req.header('Environment')
+    const transactionId = req.header('Transaction-Id')
+    const productId = req.header('Product-Id')
 
     try {
         const verifiedTransactionInfo = await verifyTransactionId(transactionId, appleRootCAs, environment == 'Sandbox' ? Environment.SANDBOX : Environment.PRODUCTION, bundleId);
 
-        res.send(verifiedTransactionInfo.inAppOwnershipType)
+        res.send(verifiedTransactionInfo.inAppOwnershipType == 'PURCHASED' && verifiedTransactionInfo.productId == productId ? 'OK' : 'Error')
     } catch (e) {
         res.send(e.httpStatusCode)
     }
