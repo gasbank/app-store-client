@@ -99,13 +99,21 @@ app.post('/verify', async (req, res) => {
 
     try {
         const verifiedTransactionInfo = await verifyTransactionId(transactionId, appleRootCAs, environment == 'Sandbox' ? Environment.SANDBOX : Environment.PRODUCTION, bundleId);
+        const validPurchase = verifiedTransactionInfo.inAppOwnershipType == 'PURCHASED' && verifiedTransactionInfo.productId == productId;
 
-        res.send(verifiedTransactionInfo.inAppOwnershipType == 'PURCHASED' && verifiedTransactionInfo.productId == productId ? 'OK' : 'Error')
+        if (validPurchase) {
+            res.setHeader('Order-Id', transactionId)
+            res.status(200)
+        } else {
+            res.status(400)
+        }
+
+        res.send(validPurchase ? 'OK' : 'Error')
     } catch (e) {
         res.send(e.httpStatusCode)
     }
 });
 
 app.listen(port, () => {
-    console.log(`Example app listening at http://localhost:${port}`);
+    console.log(`app-store-client listening at http://localhost:${port}`);
 });
